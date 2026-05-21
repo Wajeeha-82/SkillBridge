@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillBridge — Career Intelligence</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <div class="nav-logo">Skill<span>Bridge</span></div>
+            <div class="nav-stats">
+                <div class="nav-stat">
+                    <span class="nav-stat-value">{{ total_jobs }}</span>
+                    <span class="nav-stat-label">Jobs Analyzed</span>
+                </div>
+                <div class="nav-divider"></div>
+                <div class="nav-stat">
+                    <span class="nav-stat-value">{{ total_skills }}</span>
+                    <span class="nav-stat-label">Skills Tracked</span>
+                </div>
+                <div class="nav-divider"></div>
+                <div class="nav-stat">
+                    <span class="nav-stat-value">{{ total_careers }}</span>
+                    <span class="nav-stat-label">Career Paths</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-badge">Pakistan Job Market Intelligence</div>
+            <h1 class="hero-title">
+                Know Exactly What to<br>
+                <span class="hero-accent">Learn Next</span>
+            </h1>
+            <p class="hero-subtitle">
+                Analyze real job market data. Discover your skill gap.<br>
+                Get a priority learning path built on actual demand.
+            </p>
+            <div class="input-card">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label class="input-label">Target Career</label>
+                        <input type="text" id="careerInput"
+                               class="input-field"
+                               placeholder="e.g. Data Analyst"/>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Your Current Skills</label>
+                        <input type="text" id="skillsInput"
+                               class="input-field"
+                               placeholder="e.g. python, excel, communication"/>
+                    </div>
+                    <button class="analyze-btn" onclick="analyze()">
+                        <span id="btn-text">Analyze Gap</span>
+                        <svg id="btn-icon" width="18" height="18"
+                             viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                        <div id="btn-loader" class="btn-loader hidden"></div>
+                    </button>
+                </div>
+                <div class="input-hints">
+                    Try: &nbsp;
+                    <span class="hint-tag" onclick="fillExample('Data Analyst','excel, communication')">Data Analyst</span>
+                    <span class="hint-tag" onclick="fillExample('Frontend Developer','html, css, bootstrap')">Frontend Developer</span>
+                    <span class="hint-tag" onclick="fillExample('Digital Marketing','python, django, sql')">Digital Marketing</span>
+                    <span class="hint-tag" onclick="fillExample('Graphic Designer','photoshop, figma, canva')">Graphic Designer</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="results hidden" id="results">
+        <div class="results-inner">
+
+            <div class="error-box hidden" id="errorBox">
+                <svg width="20" height="20" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span id="errorText"></span>
+            </div>
+
+            <div class="report-header hidden" id="reportHeader">
+                <div>
+                    <div class="report-label">Career Report</div>
+                    <div class="report-title" id="reportTitle"></div>
+                </div>
+                <div class="report-badge" id="reportBadge"></div>
+            </div>
+
+            <div class="metrics-grid hidden" id="metricsGrid">
+                <div class="metric-card">
+                    <div class="metric-label">Match Score</div>
+                    <div class="metric-value blue" id="matchScore">—</div>
+                    <div class="metric-sub">of required skills</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Skill Gap</div>
+                    <div class="metric-value red" id="gapScore">—</div>
+                    <div class="metric-sub">skills to acquire</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Average Salary</div>
+                    <div class="metric-value white" id="avgSalary">—</div>
+                    <div class="metric-sub">PKR per month</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Jobs Available</div>
+                    <div class="metric-value white" id="totalJobs">—</div>
+                    <div class="metric-sub">in Pakistan market</div>
+                </div>
+            </div>
+
+            <div class="two-col hidden" id="salaryCity">
+                <div class="panel">
+                    <div class="panel-title">Salary Range</div>
+                    <div class="salary-range" id="salaryRange"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">Demand by City</div>
+                    <div id="cityDemand"></div>
+                </div>
+            </div>
+
+            <div class="two-col hidden" id="skillsGrid">
+                <div class="panel">
+                    <div class="panel-title">
+                        <span class="dot green"></span>Matched Skills
+                    </div>
+                    <div class="tags-container" id="matchedTags"></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">
+                        <span class="dot red"></span>Missing Skills
+                    </div>
+                    <div class="tags-container" id="missingTags"></div>
+                </div>
+            </div>
+
+            <div class="warning-panel hidden" id="warningPanel">
+                <div class="warning-header">
+                    <svg width="18" height="18" viewBox="0 0 24 24"
+                         fill="none" stroke="#f59e0b" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    Irrelevant Skills Detected
+                </div>
+                <p class="warning-text" id="warningText"></p>
+                <div class="tags-container" id="irrelevantTags"></div>
+            </div>
+
+            <div class="low-demand-panel hidden" id="lowDemandPanel">
+                <div class="warning-header">
+                    <svg width="18" height="18" viewBox="0 0 24 24"
+                         fill="none" stroke="#60a5fa" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    Niche Skills — Low Market Demand
+                </div>
+                <p class="warning-text" id="lowDemandText"></p>
+                <div class="tags-container" id="lowDemandTags"></div>
+            </div>
+
+            <div class="panel hidden" id="learningPanel">
+                <div class="panel-title">Priority Learning Path</div>
+                <p class="panel-sub" id="learningSubtitle"></p>
+                <div id="learningPath"></div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- MARKET SECTION -->
+    <section class="market-section">
+        <div class="market-inner">
+            <div class="market-header">
+                <div class="section-label">Market Intelligence</div>
+                <h2 class="section-title">Most In-Demand Careers in Pakistan</h2>
+                <p class="section-sub">Based on {{ total_jobs }} real job listings from the Pakistan job market</p>
+            </div>
+            <div class="market-grid">
+                {% for item in market %}
+                <div class="market-card" onclick="fillExample('{{ item.career }}', '')">
+                    <div class="market-card-top">
+                        <span class="market-career">{{ item.career }}</span>
+                        <span class="market-count">{{ item.count }} jobs</span>
+                    </div>
+                    <div class="market-bar-bg">
+                        <div class="market-bar-fill" style="width: {{ item.pct }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <span class="footer-logo">Skill<span>Bridge</span></span>
+            <span class="footer-text">Built on real Pakistan job market data</span>
+        </div>
+    </footer>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
